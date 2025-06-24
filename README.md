@@ -3,6 +3,8 @@
   &nbsp;&nbsp;&nbsp;&nbsp;This GitHub project contains the core computational code for the optimized implicit time-space-domain staggered-grid finite-difference scheme. I wrote it in C/C++ on the Visual Studio 2022 platform. Each folder includes a `time_space_domain.cpp` and `time_space_domain.h` to store the corresponding functions. Additionally, each folder contains a `main.cpp` file for running the program.
   The dispersion folder contains C/C++ code for calculating phase velocity dispersion and relative error. The default parameters are set as M=6, N=3, and Courant number r=0.15. The generated data is stored in txt files.
   In the stability folder, the stability factor is directly calculated in main.cpp and saved into a txt file.
-  In ITSDSGFD_Variable_Operator_length and ITSDSGFD_Fixed_Order, the program first calculates the difference coefficient table and operator length table, and then performs forward modeling. The simulation results are stored in binary .dat files with the data type of float.
-  Each folder contains all the files for implementing the corresponding functions, and the program can be run by calling the files on any platform that supports C++ operation.
+  In ITSDSGFD_Variable_Operator_length and ITSDSGFD_Fixed_Order, the program first calculates the difference coefficient table and operator length table, and then performs forward modeling. The simulation results are stored in binary .dat files with the data type of float. Each folder contains all the files for implementing the corresponding functions, and the program can be run by calling the files on any platform that supports C++ operation.
 ## Demo
+ &nbsp;&nbsp;&nbsp;&nbsp;Here, taking the Demo as an example, I will introduce in as much detail as possible the specific steps and final results of the implicit space-time domain staggered grid finite difference method and its optimized solution for the two-dimensional acoustic wave equation.
+### File import
+
