@@ -14,6 +14,8 @@ int main()
 	clock_t time1, time2, time3;
 	time3 = clock();
 	FILE* fp;
+	/********************************************************/
+	//basic parameter
 	int N = 3;
 	double dt = 0.001;
 	double dh = 10.0;
@@ -23,8 +25,9 @@ int main()
 	////////
 	int NX = 501;
 	int NZ = 353;
-	int NT = 6001;
+	int NT = 4001;
 	double fm = 23.0;
+	/*****************************************************/
 	int k0 = 1400;
 	int Nlayer = 30;
 	NX = NX + 2 * Nlayer;
@@ -33,14 +36,10 @@ int main()
 	int n = 2;
 	double vmax = 5000.0;
 	//////
-	printf("计算速度-变算子长度表\n");
-	int v_area = 3501;//速度从1500m/s到5000m/s
+	/************************************************/
+	int v_area = 3501;
 	int* Mv = linspace_int(v_area);
 	vtoMvRemez(N, dt, dh, fmax, esp0, eta0, Mv);
-	//for (int i = 0; i < v_area; i++)
-	//{
-	//	Mv[i] = Mv[0];//固定最大算子长度
-	//}
 	fp = fopen("Mv.txt", "wb");
 	if (fp != NULL)
 	{
@@ -50,11 +49,9 @@ int main()
 		}
 		fclose(fp);
 	}
-	printf("速度-变算子长度表计算完毕\n");
 	int Mmax = Mv[0];
-	printf("最大算子长度Mmax=%d\n", Mmax);
 	//////
-	printf("计算速度-变算子长度差分系数表\n");
+	printf("calculate FD coefficients table now\n");
 	int Length = Mmax + 1 + N * (N - 1) / 2;
 	double** Parameters = area_2d(v_area, Length);
 	double* v_parameters = linspace(Length);
@@ -194,7 +191,6 @@ int main()
 		}
 		//////////////
 		Remez_Optimize_eta(esp0, M, N, r, du, b, duw, bak);
-		//LS_OptimizeR_eta(esp0, M, N, r, du, b, duw, bak);
 		b = bak[1];
 
 		/////////////////
@@ -254,9 +250,8 @@ int main()
 		}
 		fclose(fp);
 	}
-	printf("速度-变算子长度差分系数表计算完毕\n");
-	/********************模型参数***********************/
-	//计算Marmousi模型
+	printf("calculate FD coefficients table finished\n");
+	/********************Marmousi P wave model***********************/
 	double** vp = area_2d(NX, NZ);
 	double** rho = area_2d(NX, NZ);
 	fp = fopen("vp501_353.dat", "rb");
@@ -267,196 +262,85 @@ int main()
 			for (int j = Nlayer; j < NZ - Nlayer; j++)
 			{
 				float vpt = 0.0;
-				fread(&vpt, sizeof(float), 1, fp);//速度模型是单精度浮点数文件，注意sizeof
+				fread(&vpt, sizeof(float), 1, fp);
 				vp[i][j] = double(vpt);
 				rho[i][j] = 0.23 * pow(vp[i][j], 0.25) * 1000.0;
 			}
 		}
 		fclose(fp);
 	}
-	//均匀模型
 
-	//拓展边界
 	for (int i = 0; i < NX; i++)
 	{
 		for (int j = 0; j < NZ; j++)
 		{
-			if (i < Nlayer && j < Nlayer)//左上角
+			if (i < Nlayer && j < Nlayer)
 			{
 				vp[i][j] = vp[Nlayer][Nlayer];
 			}
-			if (i >= NX - Nlayer && j < Nlayer)//右上角
+			if (i >= NX - Nlayer && j < Nlayer)
 			{
 				vp[i][j] = vp[NX - Nlayer - 1][Nlayer];
 			}
-			if (i < Nlayer && j >= NZ - Nlayer)//左下角
+			if (i < Nlayer && j >= NZ - Nlayer)
 			{
 				vp[i][j] = vp[Nlayer][NZ - Nlayer - 1];
 			}
-			if (i >= NX - Nlayer && j >= NZ - Nlayer)//右下角
+			if (i >= NX - Nlayer && j >= NZ - Nlayer)
 			{
 				vp[i][j] = vp[NX - Nlayer - 1][NZ - Nlayer - 1];
 			}
-			if (i < NX - Nlayer && i >= Nlayer && j < Nlayer)//上侧
+			if (i < NX - Nlayer && i >= Nlayer && j < Nlayer)
 			{
 				vp[i][j] = vp[i][Nlayer];
 			}
-			if (i < Nlayer && j >= Nlayer && j < NZ - Nlayer)//左侧
+			if (i < Nlayer && j >= Nlayer && j < NZ - Nlayer)
 			{
 				vp[i][j] = vp[Nlayer][j];
 			}
-			if (i < NX - Nlayer && i >= Nlayer && j >= NZ - Nlayer)//下侧
+			if (i < NX - Nlayer && i >= Nlayer && j >= NZ - Nlayer)
 			{
 				vp[i][j] = vp[i][NZ - Nlayer - 1];
 			}
-			if (i >= NX - Nlayer && j >= Nlayer && j < NZ - Nlayer)//右侧
+			if (i >= NX - Nlayer && j >= Nlayer && j < NZ - Nlayer)
 			{
 				vp[i][j] = vp[NX - Nlayer - 1][j];
 			}
 		}
 	}
-	//密度拓展边界
 	for (int i = 0; i < NX; i++)
 	{
 		for (int j = 0; j < NZ; j++)
 		{
-			if (i < Nlayer && j < Nlayer)//左上角
+			if (i < Nlayer && j < Nlayer)
 			{
 				rho[i][j] = rho[Nlayer][Nlayer];
 			}
-			if (i >= NX - Nlayer && j < Nlayer)//右上角
+			if (i >= NX - Nlayer && j < Nlayer)
 			{
 				rho[i][j] = rho[NX - Nlayer - 1][Nlayer];
 			}
-			if (i < Nlayer && j >= NZ - Nlayer)//左下角
+			if (i < Nlayer && j >= NZ - Nlayer)
 			{
 				rho[i][j] = rho[Nlayer][NZ - Nlayer - 1];
 			}
-			if (i >= NX - Nlayer && j >= NZ - Nlayer)//右下角
+			if (i >= NX - Nlayer && j >= NZ - Nlayer)
 			{
 				rho[i][j] = rho[NX - Nlayer - 1][NZ - Nlayer - 1];
 			}
-			if (i < NX - Nlayer && i >= Nlayer && j < Nlayer)//上侧
+			if (i < NX - Nlayer && i >= Nlayer && j < Nlayer)
 			{
 				rho[i][j] = rho[i][Nlayer];
 			}
-			if (i < Nlayer && j >= Nlayer && j < NZ - Nlayer)//左侧
+			if (i < Nlayer && j >= Nlayer && j < NZ - Nlayer)
 			{
 				rho[i][j] = rho[Nlayer][j];
 			}
-			if (i < NX - Nlayer && i >= Nlayer && j >= NZ - Nlayer)//下侧
+			if (i < NX - Nlayer && i >= Nlayer && j >= NZ - Nlayer)
 			{
 				rho[i][j] = rho[i][NZ - Nlayer - 1];
 			}
-			if (i >= NX - Nlayer && j >= Nlayer && j < NZ - Nlayer)//右侧
-			{
-				rho[i][j] = rho[NX - Nlayer - 1][j];
-			}
-		}
-	}
-
-	//fp = fopen("vp.dat", "rb");
-	//if (fp != NULL)
-	//{
-	//	for (int i = Nlayer; i < NX - Nlayer; i++)
-	//	{
-	//		for (int j = Nlayer; j < NZ - Nlayer; j++)
-	//		{
-	//			float vpt = 0.0;
-	//			fread(&vpt, sizeof(float), 1, fp);//速度模型是单精度浮点数文件，注意sizeof
-	//			vp[i][j] = double(vpt);
-	//		}
-	//	}
-	//	fclose(fp);
-	//}
-
-	//fp = fopen("rho.dat", "rb");
-	//if (fp != NULL)
-	//{
-	//	for (int i = Nlayer; i < NX - Nlayer; i++)
-	//	{
-	//		for (int j = Nlayer; j < NZ - Nlayer; j++)
-	//		{
-	//			float rhot = 0.0;
-	//			fread(&rhot, sizeof(float), 1, fp);//速度模型是单精度浮点数文件，注意sizeof
-	//			rho[i][j] = double(rhot);
-	//		}
-	//	}
-	//	fclose(fp);
-	//}
-	//速度拓展边界
-	for (int i = 0; i < NX; i++)
-	{
-		for (int j = 0; j < NZ; j++)
-		{
-			if (i < Nlayer && j < Nlayer)//左上角
-			{
-				vp[i][j] = vp[Nlayer][Nlayer];
-			}
-			if (i >= NX - Nlayer && j < Nlayer)//右上角
-			{
-				vp[i][j] = vp[NX - Nlayer - 1][Nlayer];
-			}
-			if (i < Nlayer && j >= NZ - Nlayer)//左下角
-			{
-				vp[i][j] = vp[Nlayer][NZ - Nlayer - 1];
-			}
-			if (i >= NX - Nlayer && j >= NZ - Nlayer)//右下角
-			{
-				vp[i][j] = vp[NX - Nlayer - 1][NZ - Nlayer - 1];
-			}
-			if (i < NX - Nlayer && i >= Nlayer && j < Nlayer)//上侧
-			{
-				vp[i][j] = vp[i][Nlayer];
-			}
-			if (i < Nlayer && j >= Nlayer && j < NZ - Nlayer)//左侧
-			{
-				vp[i][j] = vp[Nlayer][j];
-			}
-			if (i < NX - Nlayer && i >= Nlayer && j >= NZ - Nlayer)//下侧
-			{
-				vp[i][j] = vp[i][NZ - Nlayer - 1];
-			}
-			if (i >= NX - Nlayer && j >= Nlayer && j < NZ - Nlayer)//右侧
-			{
-				vp[i][j] = vp[NX - Nlayer - 1][j];
-			}
-		}
-	}
-	//密度拓展边界
-	for (int i = 0; i < NX; i++)
-	{
-		for (int j = 0; j < NZ; j++)
-		{
-			if (i < Nlayer && j < Nlayer)//左上角
-			{
-				rho[i][j] = rho[Nlayer][Nlayer];
-			}
-			if (i >= NX - Nlayer && j < Nlayer)//右上角
-			{
-				rho[i][j] = rho[NX - Nlayer - 1][Nlayer];
-			}
-			if (i < Nlayer && j >= NZ - Nlayer)//左下角
-			{
-				rho[i][j] = rho[Nlayer][NZ - Nlayer - 1];
-			}
-			if (i >= NX - Nlayer && j >= NZ - Nlayer)//右下角
-			{
-				rho[i][j] = rho[NX - Nlayer - 1][NZ - Nlayer - 1];
-			}
-			if (i < NX - Nlayer && i >= Nlayer && j < Nlayer)//上侧
-			{
-				rho[i][j] = rho[i][Nlayer];
-			}
-			if (i < Nlayer && j >= Nlayer && j < NZ - Nlayer)//左侧
-			{
-				rho[i][j] = rho[Nlayer][j];
-			}
-			if (i < NX - Nlayer && i >= Nlayer && j >= NZ - Nlayer)//下侧
-			{
-				rho[i][j] = rho[i][NZ - Nlayer - 1];
-			}
-			if (i >= NX - Nlayer && j >= Nlayer && j < NZ - Nlayer)//右侧
+			if (i >= NX - Nlayer && j >= Nlayer && j < NZ - Nlayer)
 			{
 				rho[i][j] = rho[NX - Nlayer - 1][j];
 			}
@@ -464,9 +348,7 @@ int main()
 	}
 
 
-
-	/************边界条件*******************/
-	//PML吸收边界
+	/************Define the Perfectly Matched Layer (PML) absorbing boundary.*******************/
 	double** d1 = area_2d(NX, NZ);
 	double** d2 = area_2d(NX, NZ);
 	double** d3 = area_2d(NX, NZ);
@@ -503,7 +385,7 @@ int main()
 			d4[i][NZ - j - 1] = pow((Nlayer * 1.0 - j * 1.0) / Nlayer, n) * log(1.0 / R) * 1.5 * vmax / (Nlayer * dh);
 		}
 	}
-	/********************波场数组*****************/
+	/********************Define wavefield variables.*****************/
 	double** vx = area_2d(NX, NZ);
 	double** p = area_2d(NX, NZ);
 	double** px = area_2d(NX, NZ);
@@ -535,7 +417,7 @@ int main()
 	double* u_after3 = linspace(NX);
 	double* u_after4 = linspace(NZ);
 
-	/**********************************************观测系统********************************/
+	/**********************************************Define observation system********************************/
 	double** DT = area_2d(NX, NZ);
 	double** wavefront_p = area_2d(NX, NZ);
 	double** record_p = area_2d(NX, NT);
@@ -544,53 +426,15 @@ int main()
 	double depth0 = 400.0;
 	int NX0 = int(offset0 / dh);
 	int NZ0 = int(depth0 / dh);
-	//DT[NX / 2][Nlayer] = 1.0;//顶部放炮
+	//DT[NX / 2][Nlayer] = 1.0;//
 	double shotoffset = 20.0;
 	double shotdepth = 20.0;
-	DT[Nlayer + int(shotoffset / dh)][Nlayer + int(shotdepth / dh)] = 1.0;//单侧放炮
-	/*******************************正演模拟*******************************/
-	//for (int i = 0; i < NX; i++)
-	//{
-	//	for (int j = 0; j < NZ; j++)
-	//	{
-	//		int flag = int(vp[i][j]) - 1500;//确定速度所在行
-	//		int M = Mv[flag];
-	//		for (int v = 0; v < Length; v++)
-	//		{
-	//			v_parameters[v] = Parameters[flag][v];
-	//		}
-	//		for (int u = 1; u <= M; u++)
-	//		{
-	//			du[u - 1] = v_parameters[u - 1 + N * (N - 1) / 2];
-	//		}
-	//		b = v_parameters[M + N * (N - 1) / 2];
-	//		for (int u = 1; u <= M; u++)
-	//		{
-	//			printf("du[u]=%lf ", du[u - 1]);
-	//		}
-	//		printf("b=%lf\n", b);
-	//	}
-	//}
-	fp = fopen("M.txt", "wb");
-	if (fp != NULL)
-	{
-		for (int i = Nlayer; i < NX - Nlayer; i++)
-		{
-			for (int j = Nlayer; j < NZ - Nlayer; j++)
-			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
-				int M = Mv[flag];
-				fprintf(fp, "%d %d %d\n", i, j, M);
-			}
-		}
-		fclose(fp);
-	}
+	DT[Nlayer + int(shotoffset / dh)][Nlayer + int(shotdepth / dh)] = 1.0;// source
+	/*******************************Forward Modeling*******************************/
 	time1 = clock();
 	double duration = 0.0;
 	duration = (time1 - time3) / CLOCKS_PER_SEC;
-	printf("正演预备工作%lf秒\n", duration);
-	char filename[50];
-
+	printf("The preparatory work for forward modeling took %lf seconds.\n", duration);
 	for (int k = 0; k < NT; k++)
 	{
 		if (k % 50 == 0)
@@ -601,7 +445,7 @@ int main()
 		{
 			for (int i = 0; i < NX; i++)
 			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
+				int flag = int(vp[i][j]) - 1500;
 				int M = Mv[flag];
 				for (int v = 0; v < Length; v++)
 				{
@@ -612,7 +456,6 @@ int main()
 					du[u - 1] = v_parameters[u - 1 + N * (N - 1) / 2];
 				}
 				b = v_parameters[M + N * (N - 1) / 2];
-				//获取该点处du,b;
 				double sumvx = 0.0;
 				for (int u = 1; u <= M; u++)
 				{
@@ -624,16 +467,16 @@ int main()
 					{
 						sumvx -= du[u - 1] * vx[i - u][j];
 					}
-				}//对每一个i求一个sum
+				}
 				u_before1[i] = sumvx / dh;
-				b_alpha1[i][i] = 1.0 - 2.0 * b;//bn
+				b_alpha1[i][i] = 1.0 - 2.0 * b;
 				if (i + 1 < NX)
 				{
-					b_alpha1[i][i + 1] = b;//cn
+					b_alpha1[i][i + 1] = b;
 				}
 				if (i - 1 >= 0)
 				{
-					b_alpha1[i][i - 1] = b;//an
+					b_alpha1[i][i - 1] = b;
 				}
 
 			}
@@ -641,15 +484,13 @@ int main()
 			for (int i = 0; i < NX; i++)
 			{
 				dvxdx[i][j] = u_after1[i];
-				//printf("k=%d,dvxdx[i][j]=%lf\n",k, dvxdx[i][j]);
 			}
 		}
-		//求dvxdx
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
 			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
+				int flag = int(vp[i][j]) - 1500;
 				for (int v = 0; v < Length; v++)
 				{
 					v_parameters[v] = Parameters[flag][v];
@@ -687,16 +528,13 @@ int main()
 					}
 				}
 				dvxdxt[i][j] = sum / dh;
-				//printf("k=%d,dvxdxt[i][j]=%lf\n",k, dvxdxt[i][j]);
-
 			}
 		}
-		//求dvxdxt
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
 			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
+				int flag = int(vp[i][j]) - 1500;
 				int M = Mv[flag];
 				for (int v = 0; v < Length; v++)
 				{
@@ -707,7 +545,6 @@ int main()
 					du[u - 1] = v_parameters[u - 1 + N * (N - 1) / 2];
 				}
 				b = v_parameters[M + N * (N - 1) / 2];
-				//获取该点处du,b;
 				double sumvz = 0.0;
 				for (int u = 1; u <= M; u++)
 				{
@@ -719,36 +556,32 @@ int main()
 					{
 						sumvz -= du[u - 1] * vz[i][j - u];
 					}
-				}//对每一个j求一个sum
+				}
 				u_before2[j] = sumvz / dh;
-				b_alpha2[j][j] = 1.0 - 2.0 * b;//bn
+				b_alpha2[j][j] = 1.0 - 2.0 * b;
 				if (j + 1 < NZ)
 				{
-					b_alpha2[j][j + 1] = b;//cn
+					b_alpha2[j][j + 1] = b;
 				}
 				if (j - 1 >= 0)
 				{
-					b_alpha2[j][j - 1] = b;//an
+					b_alpha2[j][j - 1] = b;
 				}
 			}
-			CatchUp(b_alpha2, u_before2, u_after2, NZ);
-			//LU(b_alpha2, u_before2, u_after2, NZ);
+			CatchUp(b_alpha2, u_before2, u_after2, NZ);;
 			for (int j = 0; j < NZ; j++)
 			{
 				dvzdz[i][j] = u_after2[j];
-				//printf("k=%d,dvzdz[i][j]=%lf\n", k,dvzdz[i][j]);
 			}
 		}
-		//求dvzdz
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
 			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
+				int flag = int(vp[i][j]) - 1500;
 				for (int v = 0; v < Length; v++)
 				{
 					v_parameters[v] = Parameters[flag][v];
-					//printf("v_parameters[%d]=%lf\n", j, v_parameters[j]);//输出该行参数值
 				}
 				int flag1 = 0;
 				for (int u = 1; u <= N - 1; u++)
@@ -783,10 +616,8 @@ int main()
 					}
 				}
 				dvzdzt[i][j] = sum / dh;
-				//printf("k=%d,dvzdzt[i][j]=%lf\n",k, dvzdzt[i][j]);
 			}
 		}
-		//求dvzdzt
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
@@ -794,30 +625,23 @@ int main()
 				px[i][j] = (2.0 - d3[i][j] * dt) * px[i][j] / (2.0 + d3[i][j] * dt) - (2.0 * rho[i][j] * vp[i][j] * vp[i][j] * dt) * (dvxdx[i][j] + dvxdxt[i][j]) / (2.0 + d3[i][j] * dt);
 				pz[i][j] = (2.0 - d4[i][j] * dt) * pz[i][j] / (2.0 + d4[i][j] * dt) - (2.0 * rho[i][j] * vp[i][j] * vp[i][j] * dt) * (dvzdz[i][j] + dvzdzt[i][j]) / (2.0 + d4[i][j] * dt);
 				p[i][j] = px[i][j] + pz[i][j] + DT[i][j] * ricker(k * dt, fm);
-				//px[i][j] = px[i][j] - (rho[i][j] * vp[i][j] * vp[i][j] * dt) * (dvxdx[i][j] + dvxdxt[i][j]);
-				//pz[i][j] = pz[i][j] - (rho[i][j] * vp[i][j] * vp[i][j] * dt) * (dvzdz[i][j] + dvzdzt[i][j]);
-				//p[i][j] = px[i][j] + pz[i][j] + DT[i][j] * ricker(k * dt, fm);
-
 			}
 		}
-		//求p
 		for (int j = 0; j < NZ; j++)
 		{
 			for (int i = 0; i < NX; i++)
 			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
+				int flag = int(vp[i][j]) - 1500;
 				int M = Mv[flag];
 				for (int v = 0; v < Length; v++)
 				{
 					v_parameters[v] = Parameters[flag][v];
-					//printf("v_parameters[%d]=%lf\n", j, v_parameters[j]);//输出该行参数值
 				}
 				for (int u = 1; u <= M; u++)
 				{
 					du[u - 1] = v_parameters[u - 1 + N * (N - 1) / 2];
 				}
 				b = v_parameters[M + N * (N - 1) / 2];
-				//获取该点处du,b;
 				double sumpx = 0.0;
 				for (int u = 1; u <= M; u++)
 				{
@@ -829,32 +653,29 @@ int main()
 					{
 						sumpx -= du[u - 1] * p[i - u + 1][j];
 					}
-				}//对每一个i求一个sum
+				}
 				u_before3[i] = sumpx / dh;
-				b_alpha3[i][i] = 1.0 - 2.0 * b;//bn
+				b_alpha3[i][i] = 1.0 - 2.0 * b;
 				if (i + 1 < NX)
 				{
-					b_alpha3[i][i + 1] = b;//cn
+					b_alpha3[i][i + 1] = b;
 				}
 				if (i - 1 >= 0)
 				{
-					b_alpha3[i][i - 1] = b;//an
+					b_alpha3[i][i - 1] = b;
 				}
 			}
 			CatchUp(b_alpha3, u_before3, u_after3, NX);
-			//LU(b_alpha3, u_before3, u_after3, NX);
 			for (int i = 0; i < NX; i++)
 			{
 				dpdx[i][j] = u_after3[i];
-				//printf("k=%d,dpdx[i][j]=%lf\n",k, dpdx[i][j]);
 			}
 		}
-		//求dpdx
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
 			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
+				int flag = int(vp[i][j]) - 1500;
 				for (int v = 0; v < Length; v++)
 				{
 					v_parameters[v] = Parameters[flag][v];
@@ -892,28 +713,23 @@ int main()
 					}
 				}
 				dpdxt[i][j] = sum / dh;
-				//printf("k=%d,dpdxt[i][j]=%lf\n",k, dpdxt[i][j]);
 			}
 		}
-		//求dpdxt
-
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
 			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
+				int flag = int(vp[i][j]) - 1500;
 				int M = Mv[flag];
 				for (int v = 0; v < Length; v++)
 				{
 					v_parameters[v] = Parameters[flag][v];
-					//printf("v_parameters[%d]=%lf\n", j, v_parameters[j]);//输出该行参数值
 				}
 				for (int u = 1; u <= M; u++)
 				{
 					du[u - 1] = v_parameters[u - 1 + N * (N - 1) / 2];
 				}
 				b = v_parameters[M + N * (N - 1) / 2];
-				//获取该点处du,b;
 				double sumpz = 0.0;
 				for (int u = 1; u <= M; u++)
 				{
@@ -925,36 +741,32 @@ int main()
 					{
 						sumpz -= du[u - 1] * p[i][j - u + 1];
 					}
-				}//对每一个i求一个sum
+				}
 				u_before4[j] = sumpz / dh;
-				b_alpha4[j][j] = 1.0 - 2.0 * b;//bn
+				b_alpha4[j][j] = 1.0 - 2.0 * b;
 				if (j + 1 < NZ)
 				{
-					b_alpha4[j][j + 1] = b;//cn
+					b_alpha4[j][j + 1] = b;
 				}
 				if (j - 1 >= 0)
 				{
-					b_alpha4[j][j - 1] = b;//an
+					b_alpha4[j][j - 1] = b;
 				}
 			}
 			CatchUp(b_alpha4, u_before4, u_after4, NZ);
-			//LU(b_alpha4, u_before4, u_after4, NZ);
 			for (int j = 0; j < NZ; j++)
 			{
 				dpdz[i][j] = u_after4[j];
-				//printf("k=%d,dpdz[i][j]=%lf\n",k, dpdz[i][j]);
 			}
 		}
-		//求dpdz
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
 			{
-				int flag = int(vp[i][j]) - 1500;//确定速度所在行
+				int flag = int(vp[i][j]) - 1500;
 				for (int v = 0; v < Length; v++)
 				{
 					v_parameters[v] = Parameters[flag][v];
-					//printf("v_parameters[%d]=%lf\n", j, v_parameters[j]);//输出该行参数值
 				}
 				int flag1 = 0;
 				for (int u = 1; u <= N - 1; u++)
@@ -991,25 +803,20 @@ int main()
 				dpdzt[i][j] = sum / dh;
 			}
 		}
-		//求dpdz
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
 			{
 				vx[i][j] = (2.0 - d1[i][j] * dt) * vx[i][j] / (2.0 + d1[i][j] * dt) - (2.0 * dt) * (dpdx[i][j] + dpdxt[i][j]) / (rho[i][j] * (2.0 + d1[i][j] * dt));
-				//vx[i][j] = vx[i][j] - dt * (dpdx[i][j] + dpdxt[i][j]) / rho[i][j];
 			}
 		}
-		//求vx
 		for (int i = 0; i < NX; i++)
 		{
 			for (int j = 0; j < NZ; j++)
 			{
 				vz[i][j] = (2.0 - d2[i][j] * dt) * vz[i][j] / (2.0 + d2[i][j] * dt) - (2.0 * dt) * (dpdz[i][j] + dpdzt[i][j]) / (rho[i][j] * (2.0 + d2[i][j] * dt));
-				//vz[i][j] = vz[i][j] - dt * (dpdz[i][j] + dpdzt[i][j]) / rho[i][j];
 			}
 		}
-		//求vz
 		if (k == k0)
 		{
 			for (int i = 0; i < NX; i++)
@@ -1020,37 +827,20 @@ int main()
 				}
 			}
 		}
-		//波前快照
 		for (int i = 0; i < NX; i++)
 		{
 			record_p[i][k] = p[i][Nlayer];
 		}
-		//地震记录
 		trace[k] = p[NX0 + Nlayer][NZ0 + Nlayer];
-		//(1000m,3000m)处地震记录
-		//sprintf(filename, "p_%d.dat", k);
-		//fp = fopen(filename, "wb");
-		//if (fp != NULL)
-		//{
-		//	for (int i = Nlayer; i < NX - Nlayer; i++)
-		//	{
-		//		for (int j = Nlayer; j < NZ - Nlayer; j++)
-		//		{
-		//			float rd = float(p[i][j]);
-		//			fwrite(&rd, sizeof(float), 1, fp);
-		//			//fprintf(fp, "%lf\n", record_p[i][k]);
-		//		}
-		//	}
-		//	fclose(fp);
-		//}
 	}
 	time2 = clock();
 	duration = (time2 - time1) / CLOCKS_PER_SEC;
-	printf("正演计算时长%lf秒\n", duration);
+	printf("The main loop took %lf seconds.\n", duration);
 
 	duration = (time2 - time3) / CLOCKS_PER_SEC;
-	printf("正演总时长%lf秒\n", duration);
-	/****************输出结果************/
+	printf("The total forward modeling time is %lf seconds.\n", duration);
+
+	/****************Output************/
 	fp = fopen("wavefront.dat", "wb");
 	if (fp != NULL)
 	{
@@ -1060,7 +850,6 @@ int main()
 			{
 				float wp = float(wavefront_p[i][j]);
 				fwrite(&wp, sizeof(float), 1, fp);
-				//fprintf(fp, "%lf\n", wavefront_p[i][j]);
 			}
 		}
 		fclose(fp);
@@ -1074,7 +863,6 @@ int main()
 			{
 				float rd = float(record_p[i][k]);
 				fwrite(&rd, sizeof(float), 1, fp);
-				//fprintf(fp, "%lf\n", record_p[i][k]);
 			}
 		}
 		fclose(fp);
@@ -1086,8 +874,6 @@ int main()
 		{
 			for (int k = 0; k < NT; k++)
 			{
-				//float rd = float(record_p[i][k]);
-				//fwrite(&rd, sizeof(float), 1, fp);
 				fprintf(fp, "%lf\n", record_p[i][k]);
 			}
 		}
@@ -1102,10 +888,8 @@ int main()
 		}
 		fclose(fp);
 	}
-	/*************释放内存**********/
 
-
-
+	/**********free space*************/
 	delete_2d(d1, NX);
 	delete_2d(d2, NX);
 	delete_2d(d3, NX);
@@ -1149,8 +933,6 @@ int main()
 	delete_2d(wavefront_p, NX);
 	delete_2d(record_p, NX);
 	delete[]trace;
-	printf("内存空间释放完毕\n");
-
 	///////////////
 	delete_2d(Parameters, v_area);
 	delete[]v_parameters;
