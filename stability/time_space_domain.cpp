@@ -5,34 +5,37 @@
 #include<iostream>
 using namespace std;
 #define PI 3.1415926
-double** area_2d(int NX, int NZ)//生成NX列NZ行二维数组
+
+/******************************************/
+//basic function
+double** area_2d(int NX, int NZ)//Generate a two-dimensional array with NX columns and NZ rows.
 {
 	double** b = new double* [NX];
 	for (int i = 0; i < NX; i++)
 		b[i] = new double[NZ];
 	for (int i = 0; i < NX; i++)
 		for (int j = 0; j < NZ; j++)
-			b[i][j] = 0;//二维double数组赋初值为零
+			b[i][j] = 0;//Initialize a two-dimensional double array with zeros.
 	return b;
 }
 
-double* linspace(int L)//定义L长度一维数组
+double* linspace(int L)//Define a one-dimensional double array with length L.
 {
 	double* l = new double[L];
 	for (int i = 0; i < L; i++)
-		l[i] = 0;//一维长度赋初值为零
+		l[i] = 0;//Initialize with zero.
 	return l;
 }
 
-int* linspace_int(int L)//定义L长度一维数组
+int* linspace_int(int L)//Define a one-dimensional int array with length L.
 {
 	int* l = new int[L];
 	for (int i = 0; i < L; i++)
-		l[i] = 0;//一维长度赋初值为零
+		l[i] = 0;//Initialize with zero.
 	return l;
 }
 
-void delete_2d(double** b, int NX)//deleteNX列的二维数组
+void delete_2d(double** b, int NX)//Release a two-dimensional array with NX columns.
 {
 	for (int i = 0; i < NX; i++)
 		delete[]b[i];
@@ -40,7 +43,7 @@ void delete_2d(double** b, int NX)//deleteNX列的二维数组
 	return;
 }
 
-double factorial(int N)
+double factorial(int N)//Factorial function
 {
 	double  p = 1.0;
 	if (N == 0)
@@ -57,24 +60,21 @@ double factorial(int N)
 	return p;
 }
 
-void LU(double** a, double* b, double* x, int  N)//求解系数矩阵A，非齐次项b的N维线性方程组，返回解x，解的形式为一维数组
+void LU(double** a, double* b, double* x, int  N)
+//Solve the N-dimensional linear system of equations with coefficient matrix A and nonhomogeneous term b using LU decomposition,
+// and return the solution x in the form of a one-dimensional array.
 {
 	double** l = area_2d(N, N);
 	double** u = area_2d(N, N);
 	int i, r, k;
-	//进行U的第一行的赋值
 	for (i = 0; i < N; i++)
 	{
 		u[0][i] = a[0][i];
 	}
-
-	//进行L的第一列的赋值
 	for (i = 1; i < N; i++)
 	{
 		l[i][0] = a[i][0] / u[0][0];
 	}
-
-	//计算U的剩下的行数和L的剩下的列数
 	for (r = 1; r < N; r++)
 	{
 		for (i = r; i < N; i++)
@@ -122,11 +122,11 @@ void LU(double** a, double* b, double* x, int  N)//求解系数矩阵A，非齐次项b的N维
 	delete[]y;
 	return;
 }
-
-
-
+/******************************************/
+//ITSDSGFD coefficients calculated by TE method
+/**********/
 void solve_fn(int M, double r, double* fn)
-//求解n=1,2,……，M，M+1时fn的值并存入fn数组
+//Calculate the values of fn for ( n = 1, 2, ..., M, M+1 ) and store them in the array fn.
 {
 	fn[0] = 0.5;
 	if (M == 1)
@@ -149,8 +149,6 @@ void solve_fn(int M, double r, double* fn)
 	}
 	return;
 }
-
-
 double q_coe(int m, int n, int u, int w)
 {
 	double c1 = pow(-1.0, m + n - 1) * pow(1.0 * u - 0.5, 2 * m - 1) * pow(1.0 * w, 2 * n);
@@ -167,7 +165,6 @@ double mnfmn(int m, int n, double* fn)
 	double c3 = c1 * c2;
 	return c3;
 }
-
 void fn_to_gn(double* fn, double* gn, double** duw, int M, int N)
 {
 
@@ -185,7 +182,6 @@ void fn_to_gn(double* fn, double* gn, double** duw, int M, int N)
 	}
 	return;
 }
-
 double alpha(int n, int u)
 {
 	double c1 = 1.0;
@@ -205,217 +201,10 @@ double beta(int M, double* gn, int n)
 	c1 *= -2.0;
 	return c1;
 }
+/**********/
 
-void time_space_domain_coefficience(int M, int N, double r, double* x1, double* x2)
-{
-	double* fn = linspace(M + 1);
-	solve_fn(M, r, fn);
-	//第二步，计算qmn线性方程组，求duw
-	//有效方程组个数
-	int L1 = N;
-	if (N % 2 == 0)
-	{
-		L1 = N * N / 4;
-	}
-	if (N % 2 != 0)
-	{
-		L1 = (N * N - 1) / 4;
-	}
-	int L2 = N * (N - 1) / 2;
-	//printf("总方程数目L2=%d\n", L2);
-	//printf("有效方程组个数L=%d\n", L1);
-	//补充方程组个数
-	double** supple = area_2d(N, N);
-	FILE* fp;
-	fp = fopen("qmn_equation.txt", "wb");
-	if (fp != NULL)
-	{
-		for (int m = 1; m <= int(N / 2); m++)
-		{
-			for (int n = m; n <= N - m; n++)
-			{
-				for (int u = 1; u <= N - 1; u++)
-				{
-					for (int w = 1; w <= N - u; w++)
-					{
-						//
-						//fprintf(fp, "%lf\n", q_coe(m, n, u, w));
-						double qoemnuw = q_coe(m, n, u, w);
-						fwrite(&qoemnuw, sizeof(double), 1, fp);
-					}
-				}
-				double mnfmnvalue = mnfmn(m, n, fn);
-				fwrite(&mnfmnvalue, sizeof(double), 1, fp);
-				//fprintf(fp, "%lf\n", mnfmn(m, n, fn));
-			}
-		}
-
-		for (int m = 1; m <= N - 1; m++)
-		{
-			for (int n = 1; n <= N - m; n++)
-			{
-				if (m >= 1 && m <= int(N / 2) && n >= m && n <= N - m)
-				{
-				}
-				else
-				{
-					supple[m - 1][n - 1] = -1.0;
-					supple[n - 1][m - 1] = 1.0;
-					for (int u = 1; u <= N - 1; u++)
-					{
-						for (int w = 1; w <= N - u; w++)
-						{
-							//fprintf(fp, "%lf\n", supple[u - 1][w - 1]);
-							fwrite(&supple[u - 1][w - 1], sizeof(double), 1, fp);
-						}
-					}
-					double supple0 = 0.0;
-					//fprintf(fp, "%lf\n", 0.0);
-					fwrite(&supple0, sizeof(double), 1, fp);
-				}
-			}
-		}
-		fclose(fp);
-	}
-	delete_2d(supple, N);
-	double** qmn_equation = area_2d(L2, L2 + 1);
-	double** A1 = area_2d(L2, L2);
-	double* b1 = linspace(L2);
-	double* x10 = linspace(L2);
-	fp = fopen("qmn_equation.txt", "rb");
-	if (fp != NULL)
-	{
-		for (int i = 0; i < L2; i++)
-		{
-			for (int j = 0; j < L2 + 1; j++)
-			{
-				//fscanf_s(fp, "%lf", &qmn_equation[i][j]);
-				fread(&qmn_equation[i][j], sizeof(double), 1, fp);
-			}
-		}
-		fclose(fp);
-	}
-	for (int i = 0; i < L2; i++)
-	{
-		for (int j = 0; j < L2; j++)
-		{
-			A1[i][j] = qmn_equation[i][j];
-		}
-		b1[i] = qmn_equation[i][L2];
-	}
-	LU(A1, b1, x10, L2);
-	delete_2d(qmn_equation, L2);
-	delete_2d(A1, L2);
-	delete[]b1;
-	int flag2 = 0;
-	double** duw = area_2d(N, N);
-	for (int m = 1; m <= N - 1; m++)
-	{
-		for (int n = 1; n <= N - m; n++)
-		{
-			duw[m - 1][n - 1] = x1[flag2];
-			flag2 += 1;
-		}
-	}
-	double* gn = linspace(M + 1);
-	fn_to_gn(fn, gn, duw, M, N);
-	double** Mr = area_2d(M + 1, M + 1);
-	for (int n = 1; n <= M + 1; n++)
-	{
-		for (int u = 1; u <= M; u++)
-		{
-			Mr[n - 1][u - 1] = alpha(n, u);
-		}
-	}
-	for (int n = 2; n <= M + 1; n++)
-	{
-		Mr[n - 1][M] = beta(M, gn, n);
-	}
-	double* x20 = linspace(M + 1);
-	LU(Mr, gn, x20, M + 1);
-	for (int i = 0; i < L2; i++)
-	{
-		x1[i] = x10[i];
-	}
-	for (int i = 0; i <= M; i++)
-	{
-		x2[i] = x20[i];
-	}
-	//printf("\n");
-	//fprintf(fp1, "\n");
-	// 该线性方程组为N*(N-1)/2维线性方程组
-	//第三步，计算gn
-	//第四步，计算M+1线性方程组，求du，b
-	delete_2d(Mr, M + 1);
-	delete_2d(duw, N);
-	delete[]x10;
-	delete[]x20;
-	delete[]fn;
-	delete[]gn;
-}
-
-double ricker(double idt, double fm)//震源函数雷克子波，输入时间时刻idt和主频fm，
-{
-	double r = 0.0;
-	r = (1 - 2 * pow(PI * fm * (idt - 1.0 / fm), 2)) * exp(-pow(PI * fm * (idt - 1.0 / fm), 2));
-	return r;
-}
-
-void CatchUpForImplicit(int NX, double b, double* u_before, double* u_after)
-{
-	double* beta = linspace(NX - 1);
-	beta[0] = b / (1.0 - 2.0 * b);
-	for (int i = 2; i <= NX - 1; i++)
-	{
-		beta[i - 1] = b / (1.0 - 2.0 * b - b * beta[i - 2]);
-	}
-	double* y = linspace(NX);
-	y[0] = u_before[0] / (1.0 - 2.0 * b);
-	for (int i = 2; i <= NX; i++)
-	{
-		y[i - 1] = (u_before[i - 1] - b * y[i - 2]) / (1.0 - 2.0 * b - b * beta[i - 2]);
-	}
-	u_after[NX - 1] = y[NX - 1];
-	for (int i = NX - 1; i >= 1; i--)
-	{
-		u_after[i - 1] = y[i - 1] - beta[i - 1] * u_after[i];
-	}
-	delete[]beta;
-	delete[]y;
-	return;
-}
-
-void CatchUp(double** A, double* u_before, double* u_after, int N)//求解N维三对角矩阵
-{
-	double* alpha = linspace(N);
-	double* beta = linspace(N);
-	double* gama = linspace(N);
-	double* y = linspace(N);
-	alpha[0] = A[0][0];
-	beta[0] = A[0][1] / A[0][0];
-	y[0] = u_before[0] / A[0][0];
-	for (int i = 1; i < N; i++)
-	{
-		gama[i] = A[i][i - 1];
-		alpha[i] = A[i][i] - gama[i] * beta[i - 1];
-		if (i < N - 1)
-		{
-			beta[i] = A[i][i + 1] / alpha[i];
-		}
-		y[i] = (u_before[i] - A[i][i - 1] * y[i - 1]) / alpha[i];
-	}
-	u_after[N - 1] = y[N - 1];
-	for (int i = N - 2; i >= 0; i--)
-	{
-		u_after[i] = y[i] - beta[i] * u_after[i + 1];
-	}
-	delete[]y;
-	delete[]alpha;
-	delete[]beta;
-	delete[]gama;
-	return;
-}
-
+/*************************************************/
+//optimization function
 double H(double beta, double r, int N, double** duw)
 {
 	double s1 = sin(0.5 * r * beta) / r;
@@ -431,33 +220,7 @@ double H(double beta, double r, int N, double** duw)
 	return s3;
 }
 
-double error(double beta, int M, int N, double r, double* du, double b, double** duw)//相对误差
-{
-	double s1 = 0.0;
-	for (int i = 1; i <= M; i++)
-	{
-		s1 += du[i - 1] * sin((1.0 * i - 0.5) * beta);
-	}
-	double s2 = b * (2.0 - 2.0 * cos(beta));
-	double s3 = H(beta, r, N, duw);
-	double s4 = s2 + s1 / s3 - 1.0;
-	return s4;
-}
-
-double ErrorA(double beta, int M, int N, double r, double* du, double b, double** duw)//绝对误差
-{
-	double s1 = 0.0;
-	for (int i = 1; i <= M; i++)
-	{
-		s1 += du[i - 1] * sin((1.0 * i - 0.5) * beta);
-	}
-	double s2 = b * (2.0 - 2.0 * cos(beta));
-	double s3 = H(beta, r, N, duw);
-	double s4 = s1 + s2 * s3 - s3;
-	return s4;
-}
-
-double ErrorR(double beta, int M, int N, double r, double* du, double b, double** duw)//相对误差
+double ErrorR(double beta, int M, int N, double r, double* du, double b, double** duw)//Relative error
 {
 	double s1 = 0.0;
 	for (int i = 1; i <= M; i++)
@@ -470,59 +233,7 @@ double ErrorR(double beta, int M, int N, double r, double* du, double b, double*
 	return s4;
 }
 
-
-double L2A(double** RombergT, int RomberOrder, double betamax, double r, int M, int N, double* du, double b, double** duw)//绝对误差L2范数
-{
-	double xa=1e-12;
-	double xb = betamax;
-	double esp=1e-12;
-	int Rout = 0;
-	double I = 0.0;
-	///////
-	double h = (xb - xa) / 2.0;
-	double fa = ErrorA(xa, M, N, r, du, b, duw);
-	double fb = ErrorA(xb, M, N, r, du, b, duw);
-	RombergT[0][0] = h * (fa*fa + fb*fb);/////替换被积函数
-	int k = 1;
-	int n = 1;
-	/////
-	do {
-		double F = 0.0;
-		for (int i = 1; i <= n; i++)
-		{
-			F += ErrorA(xa + (2 * i - 1) * h, M, N, r, du, b, duw)* ErrorA(xa + (2 * i - 1) * h, M, N, r, du, b, duw);///////替换被积函数
-		}
-		////
-		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
-		///
-		for (int m = 1; m <= k; m++)
-		{
-			RombergT[k - m][m] = (pow(4, m) * RombergT[k - m + 1][m - 1] - RombergT[k - m][m - 1]) / (pow(4, m) - 1);
-		}
-		///
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) < esp)
-		{
-			Rout = 1;
-			I = RombergT[0][k];
-		}
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) >= esp)
-		{
-			h *= 0.5;
-			n *= 2;
-			k += 1;
-			Rout = 0;
-
-		}
-		//if (k == RomberOrder)
-		//{
-		//	Rout = 1;
-		//}
-	} while (Rout == 0);
-	return I;
-}
-
-
-double L2R(double** RombergT, int RomberOrder, double betamax, double r, int M, int N, double* du, double b, double** duw)//相对误差L2范数
+double L2R(double** RombergT, int RomberOrder, double betamax, double r, int M, int N, double* du, double b, double** duw)//The L2 norm of relative error.
 {
 	double xa=1e-12;
 	double xb = betamax;
@@ -533,7 +244,7 @@ double L2R(double** RombergT, int RomberOrder, double betamax, double r, int M, 
 	double h = (xb - xa) / 2.0;
 	double fa = ErrorR(xa, M, N, r, du, b, duw);
 	double fb = ErrorR(xb, M, N, r, du, b, duw);
-	RombergT[0][0] = h * (fa*fa + fb*fb);/////替换被积函数
+	RombergT[0][0] = h * (fa*fa + fb*fb);/////Replace the integrand
 	int k = 1;
 	int n = 1;
 	/////
@@ -541,7 +252,7 @@ double L2R(double** RombergT, int RomberOrder, double betamax, double r, int M, 
 		double F = 0.0;
 		for (int i = 1; i <= n; i++)
 		{
-			F += ErrorR(xa + (2 * i - 1) * h, M, N, r, du, b, duw)* ErrorR(xa + (2 * i - 1) * h, M, N, r, du, b, duw);///////替换被积函数
+			F += ErrorR(xa + (2 * i - 1) * h, M, N, r, du, b, duw)* ErrorR(xa + (2 * i - 1) * h, M, N, r, du, b, duw);///////Replace the integrand
 		}
 		////
 		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
@@ -572,13 +283,13 @@ double L2R(double** RombergT, int RomberOrder, double betamax, double r, int M, 
 	return I;
 }
 
-
-double f1A(double beta, int u, int j, double r, int N, double** duw)
-{
-	double s1 = 0.0;
-	s1 = sin((1.0 * u - 0.5) * beta) * sin((1.0 * j - 0.5) * beta);
-	return s1 ;
-}
+/*************************************************/
+/*
+When optimizing the difference coefficients using the least squares method,it is necessary to solve a system of linear equations. 
+At this time, both the coefficient matrix and the non - homogeneous term of the system of equations are integral expressions,
+and numerical integration methods need to be used to solve them.
+*/
+//All numerical integrations in this program group are solved using the Romberg integration formula.
 
 double f1R(double beta, int u, int j, double r, int N, double** duw)
 {
@@ -599,7 +310,7 @@ double a1R(double** RombergT, int RomberOrder, double betamax, int u, int j, dou
 	double h = (xb - xa) / 2.0;
 	double fa = f1R(xa, u, j, r, N, duw);
 	double fb = f1R(xb, u, j, r, N, duw);;
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
+	RombergT[0][0] = h * (fa + fb);/////Replace the integrand
 	int k = 1;
 	int n = 1;
 	/////
@@ -607,7 +318,7 @@ double a1R(double** RombergT, int RomberOrder, double betamax, int u, int j, dou
 		double F = 0.0;
 		for (int i = 1; i <= n; i++)
 		{
-			F += f1R(xa + (2 * i - 1) * h, u, j, r, N, duw);///////替换被积函数
+			F += f1R(xa + (2 * i - 1) * h, u, j, r, N, duw);///////Replace the integrand
 		}
 		////
 		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
@@ -636,71 +347,6 @@ double a1R(double** RombergT, int RomberOrder, double betamax, int u, int j, dou
 		//}
 	} while (Rout == 0);
 	return I;
-}
-
-double a1A(double** RombergT, int RomberOrder, double betamax, int u, int j, double r, int N, double** duw)
-{
-	double xa=1e-12;
-	double xb = betamax;
-	double esp=1e-12;
-	int Rout = 0;
-	double I = 0.0;
-	///////
-	double h = (xb - xa) / 2.0;
-	double fa = f1A(xa, u, j, r, N, duw);
-	double fb = f1A(xb, u, j, r, N, duw);;
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
-	int k = 1;
-	int n = 1;
-	/////
-	do {
-		double F = 0.0;
-		for (int i = 1; i <= n; i++)
-		{
-			F += f1A(xa + (2 * i - 1) * h, u, j, r, N, duw);///////替换被积函数
-		}
-		////
-		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
-		///
-		for (int m = 1; m <= k; m++)
-		{
-			RombergT[k - m][m] = (pow(4, m) * RombergT[k - m + 1][m - 1] - RombergT[k - m][m - 1]) / (pow(4, m) - 1);
-		}
-		///
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) < esp)
-		{
-			Rout = 1;
-			I = RombergT[0][k];
-		}
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) >= esp)
-		{
-			h *= 0.5;
-			n *= 2;
-			k += 1;
-			Rout = 0;
-
-		}
-		//if (k == RomberOrder)
-		//{
-		//	Rout = 1;
-		//}
-	} while (Rout == 0);
-	return I;
-}
-
-
-
-double f2A(double beta, int j, double r, int N, double** duw)
-{
-	double s1 = 0.0;
-	s1 = 2.0 - 2.0 * cos(beta);
-	double s2 = 0.0;
-	s2 = H(beta, r, N, duw);
-	double s3 = 0.0;
-	s3 = sin((1.0 * j - 0.5) * beta);
-	double s4 = 0.0;
-	s4 = s1 * s3 * s2;
-	return s4;
 }
 
 double f2R(double beta, int j, double r, int N, double** duw)
@@ -716,56 +362,6 @@ double f2R(double beta, int j, double r, int N, double** duw)
 	return s4;
 }
 
-double a2A(double** RombergT, int RomberOrder, double betamax, int j, double r, int N, double** duw)
-{
-	double xa=1e-12;
-	double xb = betamax;
-	double esp=1e-12;
-	int Rout = 0;
-	double I = 0.0;
-	///////
-	double h = (xb - xa) / 2.0;
-	double fa = f2A(xa, j, r, N, duw);
-	double fb = f2A(xb, j, r, N, duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
-	int k = 1;
-	int n = 1;
-	/////
-	do {
-		double F = 0.0;
-		for (int i = 1; i <= n; i++)
-		{
-			F += f2A(xa + (2 * i - 1) * h,j,r,N,duw);///////替换被积函数
-		}
-		////
-		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
-		///
-		for (int m = 1; m <= k; m++)
-		{
-			RombergT[k - m][m] = (pow(4, m) * RombergT[k - m + 1][m - 1] - RombergT[k - m][m - 1]) / (pow(4, m) - 1);
-		}
-		///
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) < esp)
-		{
-			Rout = 1;
-			I = RombergT[0][k];
-		}
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) >= esp)
-		{
-			h *= 0.5;
-			n *= 2;
-			k += 1;
-			Rout = 0;
-
-		}
-		//if (k == RomberOrder)
-		//{
-		//	Rout = 1;
-		//}
-	} while (Rout == 0);
-	return I;
-}
-
 double a2R(double** RombergT, int RomberOrder, double betamax, int j, double r, int N, double** duw)
 {
 	double xa=1e-12;
@@ -777,7 +373,7 @@ double a2R(double** RombergT, int RomberOrder, double betamax, int j, double r, 
 	double h = (xb - xa) / 2.0;
 	double fa = f2R(xa, j, r, N, duw);
 	double fb = f2R(xb, j, r, N, duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
+	RombergT[0][0] = h * (fa + fb);/////Replace the integrand
 	int k = 1;
 	int n = 1;
 	/////
@@ -785,7 +381,7 @@ double a2R(double** RombergT, int RomberOrder, double betamax, int j, double r, 
 		double F = 0.0;
 		for (int i = 1; i <= n; i++)
 		{
-			F += f2R(xa + (2 * i - 1) * h, j, r, N, duw);///////替换被积函数
+			F += f2R(xa + (2 * i - 1) * h, j, r, N, duw);///////Replace the integrand
 		}
 		////
 		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
@@ -814,19 +410,6 @@ double a2R(double** RombergT, int RomberOrder, double betamax, int j, double r, 
 		//}
 	} while (Rout == 0);
 	return I;
-}
-
-double f3A(double beta, int u, double r, int N, double** duw)
-{
-	double s1 = 0.0;
-	s1 = 2.0 - 2.0 * cos(beta);
-	double s2 = 0.0;
-	s2 = H(beta, r, N, duw);
-	double s3 = 0.0;
-	s3 = sin((1.0 * u - 0.5) * beta);
-	double s4 = 0.0;
-	s4 = s1 * s3 * s2;
-	return s4;
 }
 
 double f3R(double beta, int u, double r, int N, double** duw)
@@ -842,56 +425,6 @@ double f3R(double beta, int u, double r, int N, double** duw)
 	return s4;
 }
 
-
-double a3A(double** RombergT, int RomberOrder, double betamax, int u, double r, int N, double** duw)
-{
-	double xa=1e-12;
-	double xb = betamax;
-	double esp=1e-12;
-	int Rout = 0;
-	double I = 0.0;
-	///////
-	double h = (xb - xa) / 2.0;
-	double fa = f3A(xa, u, r, N, duw);
-	double fb = f3A(xb, u, r, N, duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
-	int k = 1;
-	int n = 1;
-	/////
-	do {
-		double F = 0.0;
-		for (int i = 1; i <= n; i++)
-		{
-			F += f3A(xa + (2 * i - 1) * h, u, r, N, duw);///////替换被积函数
-		}
-		////
-		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
-		///
-		for (int m = 1; m <= k; m++)
-		{
-			RombergT[k - m][m] = (pow(4, m) * RombergT[k - m + 1][m - 1] - RombergT[k - m][m - 1]) / (pow(4, m) - 1);
-		}
-		///
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) < esp)
-		{
-			Rout = 1;
-			I = RombergT[0][k];
-		}
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) >= esp)
-		{
-			h *= 0.5;
-			n *= 2;
-			k += 1;
-			Rout = 0;
-		}
-		//if (k == RomberOrder)
-		//{
-		//	Rout = 1;
-		//}
-	} while (Rout == 0);
-	return I;
-}
-
 double a3R(double** RombergT, int RomberOrder, double betamax, int u, double r, int N, double** duw)
 {
 	double xa=1e-12;
@@ -903,7 +436,7 @@ double a3R(double** RombergT, int RomberOrder, double betamax, int u, double r, 
 	double h = (xb - xa) / 2.0;
 	double fa = f3R(xa, u, r, N, duw);
 	double fb = f3R(xb, u, r, N, duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
+	RombergT[0][0] = h * (fa + fb);/////Replace the integrand
 	int k = 1;
 	int n = 1;
 	/////
@@ -911,7 +444,7 @@ double a3R(double** RombergT, int RomberOrder, double betamax, int u, double r, 
 		double F = 0.0;
 		for (int i = 1; i <= n; i++)
 		{
-			F += f3R(xa + (2 * i - 1) * h, u, r, N, duw);///////替换被积函数
+			F += f3R(xa + (2 * i - 1) * h, u, r, N, duw);///////Replace the integrand
 		}
 		////
 		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
@@ -950,66 +483,6 @@ double f4R(double beta, double r, int N, double** duw)
 	return s4;
 }
 
-double f4A(double beta, double r, int N, double** duw)
-{
-	double s1 = 0.0;
-	s1 = 2.0 - 2.0 * cos(beta);
-	double s2 = H(beta, r, N, duw);
-	double s4 = 0.0;
-	s4 = s1 * s1 * s2 * s2;
-	return s4;
-}
-
-
-double a4A(double** RombergT, int RomberOrder, double betamax, double r, int N, double** duw)
-{
-	double xa=1e-12;
-	double xb = betamax;
-	double esp=1e-12;
-	int Rout = 0;
-	double I = 0.0;
-	///////
-	double h = (xb - xa) / 2.0;
-	double fa = f4A(xa,r,N,duw);
-	double fb = f4A(xb,r,N,duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
-	int k = 1;
-	int n = 1;
-	/////
-	do {
-		double F = 0.0;
-		for (int i = 1; i <= n; i++)
-		{
-			F += f4A(xa + (2 * i - 1) * h, r, N, duw);///////替换被积函数
-		}
-		////
-		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
-		///
-		for (int m = 1; m <= k; m++)
-		{
-			RombergT[k - m][m] = (pow(4, m) * RombergT[k - m + 1][m - 1] - RombergT[k - m][m - 1]) / (pow(4, m) - 1);
-		}
-		///
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) < esp)
-		{
-			Rout = 1;
-			I = RombergT[0][k];
-		}
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) >= esp)
-		{
-			h *= 0.5;
-			n *= 2;
-			k += 1;
-			Rout = 0;
-		}
-		//if (k == RomberOrder)
-		//{
-		//	Rout = 1;
-		//}
-	} while (Rout == 0);
-	return I;
-}
-
 double a4R(double** RombergT, int RomberOrder, double betamax, double r, int N, double** duw)
 {
 	double xa=1e-12;
@@ -1021,7 +494,7 @@ double a4R(double** RombergT, int RomberOrder, double betamax, double r, int N, 
 	double h = (xb - xa) / 2.0;
 	double fa = f4R(xa, r, N, duw);
 	double fb = f4R(xb, r, N, duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
+	RombergT[0][0] = h * (fa + fb);/////Replace the integrand
 	int k = 1;
 	int n = 1;
 	/////
@@ -1029,7 +502,7 @@ double a4R(double** RombergT, int RomberOrder, double betamax, double r, int N, 
 		double F = 0.0;
 		for (int i = 1; i <= n; i++)
 		{
-			F += f4R(xa + (2 * i - 1) * h, r, N, duw);///////替换被积函数
+			F += f4R(xa + (2 * i - 1) * h, r, N, duw);///////Replace the integrand
 		}
 		////
 		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
@@ -1070,16 +543,6 @@ double g1R(double beta, int j, double r, int N, double** duw)
 	return s4;
 }
 
-double g1A(double beta, int j, double r, int N, double** duw)
-{
-	double s2 = 0.0;
-	s2 = H(beta, r, N, duw);
-	double s3 = 0.0;
-	s3 = sin((1.0 * j - 0.5) * beta);
-	return s3 * s2;
-}
-
-
 double b1R(double** RombergT, int RomberOrder, double betamax, int j, double r, int N, double** duw)
 {
 	double xa=1e-12;
@@ -1091,7 +554,7 @@ double b1R(double** RombergT, int RomberOrder, double betamax, int j, double r, 
 	double h = (xb - xa) / 2.0;
 	double fa = g1R(xa, j, r, N, duw);
 	double fb = g1R(xb, j, r, N, duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
+	RombergT[0][0] = h * (fa + fb);/////Replace the integrand
 	int k = 1;
 	int n = 1;
 	/////
@@ -1099,7 +562,7 @@ double b1R(double** RombergT, int RomberOrder, double betamax, int j, double r, 
 		double F = 0.0;
 		for (int i = 1; i <= n; i++)
 		{
-			F += g1R(xa + (2 * i - 1) * h, j, r, N, duw);///////替换被积函数
+			F += g1R(xa + (2 * i - 1) * h, j, r, N, duw);///////Replace the integrand
 		}
 		////
 		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
@@ -1127,63 +590,6 @@ double b1R(double** RombergT, int RomberOrder, double betamax, int j, double r, 
 		//}
 	} while (Rout == 0);
 	return I;
-}
-
-double b1A(double** RombergT, int RomberOrder, double betamax, int j, double r, int N, double** duw)
-{
-	double xa=1e-12;
-	double xb = betamax;
-	double esp=1e-12;
-	int Rout = 0;
-	double I = 0.0;
-	///////
-	double h = (xb - xa) / 2.0;
-	double fa = g1A(xa, j, r, N, duw);
-	double fb = g1A(xb, j, r, N, duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
-	int k = 1;
-	int n = 1;
-	/////
-	do {
-		double F = 0.0;
-		for (int i = 1; i <= n; i++)
-		{
-			F += g1A(xa + (2 * i - 1) * h, j, r, N, duw);///////替换被积函数
-		}
-		////
-		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
-		///
-		for (int m = 1; m <= k; m++)
-		{
-			RombergT[k - m][m] = (pow(4, m) * RombergT[k - m + 1][m - 1] - RombergT[k - m][m - 1]) / (pow(4, m) - 1);
-		}
-		///
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) < esp)
-		{
-			Rout = 1;
-			I = RombergT[0][k];
-		}
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) >= esp)
-		{
-			h *= 0.5;
-			n *= 2;
-			k += 1;
-			Rout = 0;
-		}
-		//if (k == RomberOrder)
-		//{
-		//	Rout = 1;
-		//}
-	} while (Rout == 0);
-	return I;
-}
-
-double g2A(double beta,  double r, int N, double** duw)
-{
-	double s1 = 0.0;
-	s1 = 2.0 - 2.0 * cos(beta);
-	double s2 = H(beta, r, N, duw);
-	return s1 * s2 * s2;
 }
 
 double g2R(double beta)
@@ -1191,55 +597,6 @@ double g2R(double beta)
 	double s1 = 0.0;
 	s1 = 2.0 - 2.0 * cos(beta);
 	return s1;
-}
-
-double b2A(double** RombergT, int RomberOrder, double betamax, double r, int N, double** duw)
-{
-	double xa=1e-12;
-	double xb = betamax;
-	double esp=1e-12;
-	int Rout = 0;
-	double I = 0.0;
-	///////
-	double h = (xb - xa) / 2.0;
-	double fa = g2A(xa, r, N, duw);
-	double fb = g2A(xb, r, N, duw);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
-	int k = 1;
-	int n = 1;
-	/////
-	do {
-		double F = 0.0;
-		for (int i = 1; i <= n; i++)
-		{
-			F += g2A(xa + (2 * i - 1) * h, r, N, duw);///////替换被积函数
-		}
-		////
-		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
-		///
-		for (int m = 1; m <= k; m++)
-		{
-			RombergT[k - m][m] = (pow(4, m) * RombergT[k - m + 1][m - 1] - RombergT[k - m][m - 1]) / (pow(4, m) - 1);
-		}
-		///
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) < esp)
-		{
-			Rout = 1;
-			I = RombergT[0][k];
-		}
-		if (fabs(RombergT[0][k] - RombergT[0][k - 1]) >= esp)
-		{
-			h *= 0.5;
-			n *= 2;
-			k += 1;
-			Rout = 0;
-		}
-		//if (k == RomberOrder)
-		//{
-		//	Rout = 1;
-		//}
-	} while (Rout == 0);
-	return I;
 }
 
 double b2R(double** RombergT, int RomberOrder, double betamax, double r, int N, double** duw)
@@ -1253,7 +610,7 @@ double b2R(double** RombergT, int RomberOrder, double betamax, double r, int N, 
 	double h = (xb - xa) / 2.0;
 	double fa = g2R(xa);
 	double fb = g2R(xb);
-	RombergT[0][0] = h * (fa + fb);/////替换被积函数
+	RombergT[0][0] = h * (fa + fb);/////Replace the integrand
 	int k = 1;
 	int n = 1;
 	/////
@@ -1261,7 +618,7 @@ double b2R(double** RombergT, int RomberOrder, double betamax, double r, int N, 
 		double F = 0.0;
 		for (int i = 1; i <= n; i++)
 		{
-			F += g2R(xa + (2 * i - 1) * h);///////替换被积函数
+			F += g2R(xa + (2 * i - 1) * h);///////Replace the integrand
 		}
 		////
 		RombergT[k][0] = RombergT[k - 1][0] / 2 + h * F;
@@ -1290,10 +647,12 @@ double b2R(double** RombergT, int RomberOrder, double betamax, double r, int N, 
 	} while (Rout == 0);
 	return I;
 }
+/*************************************************/
 
 
-
-void LS_OptimizeR_beta(double betamax, int M, int N, double r, double* du, double b, double** duw, double* BetaMaxNewAndB)//给定最大波数和阶数，获得相应波数下的L1误差和差分系数
+// Optimize the spatial implicit FD coefficients with the Least square method(LS) under the premise of a given maximum wavenumber range.
+// When outputting the difference coefficients, also output the error values corresponding to the wavenumber range, FD operator length M,N, Courant number r and temporal FD coefficients duw.
+void LS_OptimizeR_beta(double betamax, int M, int N, double r, double* du, double b, double** duw, double* BetaMaxNewAndB)
 {
 	double** Mr_new = area_2d(M + 1, M + 1);
 	double* gn_new = linspace(M + 1);
@@ -1363,7 +722,7 @@ void LS_OptimizeR_beta(double betamax, int M, int N, double r, double* du, doubl
 		du[i] = x2_new[i];
 	}
 	b = x2_new[M];
-	//////////////////////求解线性方程组，获得优化隐式差分系数
+	//Solve the system of linear equations to obtain the optimized implicit difference coefficients.
 	double Errorlimit = 0.0;
 	for (double beta = betamax; beta >=1e-6; beta -= 1e-6)
 	{
@@ -1373,9 +732,8 @@ void LS_OptimizeR_beta(double betamax, int M, int N, double r, double* du, doubl
 			Errorlimit = errori;
 		}
 	}
-	///////////////////////////遍历
+	//Find the maximum error Errorlimit.
 	//printf("betamax=%lf Errorlimit=%1.12f\n", betamax, Errorlimit);
-	//优化完毕，释放优化内存
 	delete_2d(Mr_new, M + 1);
 	delete[]gn_new;
 	delete[]x2_new;
@@ -1386,7 +744,11 @@ void LS_OptimizeR_beta(double betamax, int M, int N, double r, double* du, doubl
 	return;
 }
 
-void LS_OptimizeR_eta(double eta, int M, int N, double r, double* du, double b, double** duw, double* BetaMaxNewAndB)//给定误差限和阶数，获得最大波数和差分系数
+
+// Optimize the spatial implicit FD coefficients using the Least square method(LS) under the premise of a given error limitation eta. 
+// While outputting the difference coefficients, output the maximum wavenumber range that meets the error limitation eta.
+//Use the bisection method to find the maximum wavenumber that satisfies the error limitation.
+void LS_OptimizeR_eta(double eta, int M, int N, double r, double* du, double b, double** duw, double* BetaMaxNewAndB)
 {
 	double betaa = 1e-12;
 	double betab = PI - 1e-12;
@@ -1416,9 +778,8 @@ void LS_OptimizeR_eta(double eta, int M, int N, double r, double* du, double b, 
 	return;
 }
 
-
-double dispersion4(double kh, double theta, double r, int M, int N, double* x1, double* x2)//时空域频散特性
-//x1为N*（N-1）/2个duw系数，x2为M+1个du和b系数
+double dispersion4(double kh, double theta, double r, int M, int N, double* x1, double* x2)//phase velocity dispersion
+//x1 stores temporal FD coefficients, and x2 stores spatial FD coefficients
 {
 	double d = 0.0;
 	double** duw = area_2d(N, N);
@@ -1457,6 +818,9 @@ double dispersion4(double kh, double theta, double r, int M, int N, double* x1, 
 	return d;
 }
 
+
+// Optimize the spatial implicit FD coefficients with the Remez exchange algorithm (RA) under the premise of a given maximum wavenumber range.
+// When outputting the difference coefficients, also output the error values E corresponding to the wavenumber range, FD operator length M,N, Courant number r and temporal FD coefficients duw.
 void Remez_Optimize_beta(double betamax, int M, int N, double r, double* du, double b, double** duw, double* bak)
 {
 	double esp = 1e-9;
@@ -1496,9 +860,9 @@ void Remez_Optimize_beta(double betamax, int M, int N, double r, double* du, dou
 		}
 		for (int i = 1; i <= M + 1; i++)
 		{
-			double x0 = betai[i - 1];//区间下限
-			double x1 = betai[i];//区间上限
-			double x2 = (x1+x0)/2;//零点
+			double x0 = betai[i - 1];//Lower limit of interval
+			double x1 = betai[i];//Upper limit of interval
+			double x2 = (x1+x0)/2;//Zero point
 			int roott = 0;
 			do {
 				roott += 1;
@@ -1525,15 +889,15 @@ void Remez_Optimize_beta(double betamax, int M, int N, double r, double* du, dou
 		//printf("\n");
 		for (int i = 0; i <= M; i++)
 		{
-			double left = Remez_root[i];//区间下限
-			double right = Remez_root[i + 1];//区间上限
+			double left = Remez_root[i];//Lower limit of interval
+			double right = Remez_root[i + 1];//pper limit of interval
 			double midl, midr;
-			////////////////////////三分法求函数极大值和极大值点
+			//Use the trisection method to find the maximum value of a function and the point where the maximum occurs.
 			while (right - left >= 1e-9)
 			{
 				midl = (2 * left + right) / 3;
 				midr = (left + 2 * right) / 3;
-				if (fabs(ErrorR(midl, M, N, r, du, b, duw)) < fabs(ErrorR(midr, M, N, r, du, b, duw)))////求函数极大值
+				if (fabs(ErrorR(midl, M, N, r, du, b, duw)) < fabs(ErrorR(midr, M, N, r, du, b, duw)))////Find the maximum value of a function.
 				{
 					left = midl;
 				}
@@ -1546,13 +910,13 @@ void Remez_Optimize_beta(double betamax, int M, int N, double r, double* du, dou
 		}
 		E = fabs(E);
 		//printf("RemezT=%d E=%1.12f\n",RemezT, E);
-		if (fabs(E - E0) / fabs(E0) < 1E-10)//误差收敛
+		if (fabs(E - E0) / fabs(E0) < 1E-10)//Error convergence
 		{
 			Remezoutmark = 1;
 		}
 		E0 = E;
 		RemezT += 1;
-		if (RemezT > 20)//循环次数太多
+		if (RemezT > 20)//Automatically exit the loop after too many iterations.
 		{
 			Remezoutmark = 1;
 		}
@@ -1574,6 +938,9 @@ void Remez_Optimize_beta(double betamax, int M, int N, double r, double* du, dou
 	return;
 }
 
+// Optimize the spatial implicit FD coefficients using the Least square method(LS) under the premise of a given error limitation eta. 
+// While outputting the difference coefficients, output the maximum wavenumber range that meets the error limitation eta.
+//Use the bisection method to find the maximum wavenumber that satisfies the error limitation.
 void Remez_Optimize_eta(double eta, int M, int N, double r, double* du, double b, double** duw,double*bak)
 {
 	double betaa = 1e-9;
@@ -1584,7 +951,7 @@ void Remez_Optimize_eta(double eta, int M, int N, double r, double* du, double b
 	do {
 		etat += 1;
 		double betamax = (betaa + betab) / 2;
-		Remez_Optimize_beta(betamax, M, N, r, du, b, duw, bak);//二分法获得最大波数
+		Remez_Optimize_beta(betamax, M, N, r, du, b, duw, bak);
 		b = bak[1];
 		E = fabs(bak[0]);
 		if (E > eta)
@@ -1596,7 +963,7 @@ void Remez_Optimize_eta(double eta, int M, int N, double r, double* du, double b
 			betaa = betamax;
 		}
 		bak[0] = betamax;
-		printf("etat=%d betamax=%lf E=%1.12f b-a=%lf\n",etat, betamax, E, betab - betaa);
+		//printf("etat=%d betamax=%lf E=%1.12f b-a=%lf\n",etat, betamax, E, betab - betaa);
 	} while ((betab-betaa)>=1e-9&&etat<100);
 	//printf("r=%lf betamax=%lf E=%1.12f\n", r, betaa, E);
 
