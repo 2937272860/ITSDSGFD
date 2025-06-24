@@ -24,10 +24,10 @@ int main()
 	FILE* fp;
 	/***********************************************************/
 	//basic parameters for modeling
-	int M = 5;							//Operator length M for spatial derivative
+	int M = 6;							//Operator length M for spatial derivative
 	int N = 3;							//Operator length N for temporal derivative
-	int NX = 301;						//Grid number in x direction
-	int NZ = 301;						//Grid number in z direction
+	int NX = 201;						//Grid number in x direction
+	int NZ = 201;						//Grid number in z direction
 	int NT = 1001;						//Moment number for time,starting from time zero.
 	double fm = 20.0;					//Dominant frequency of Ricker wavelet(Hz)		
 	double esp0 = 1e-6;					//Relative error limitation of Remez exchange algorithm optimization
@@ -44,7 +44,7 @@ int main()
 	/**********************************************************/
 	//Parameters required for solving the difference coefficient table.
 	int Length = M + 1 + N * (N - 1) / 2;
-	int v_area = 3501;
+	int v_area = 1;
 	double** Parameters = area_2d(v_area, Length);
 	double* x1 = linspace(N * (N - 1) / 2);
 	double* x2 = linspace(M + 1);
@@ -138,7 +138,7 @@ int main()
 	double shotoffset = 20.0;						//The x-coordinate of the source point.
 	double shotdepth = 20.0;						//The z-coordinate of the source point.
 	DT[Nlayer + int(shotoffset / dh)][Nlayer + int(shotdepth / dh)] = 1.0;         //Source
-	double offset0 = 2500.0;
+	double offset0 = 100.0;
 	double depth0 = 400.0;
 	int NX0 = int(offset0 / dh);
 	int NZ0 = int(depth0 / dh);
@@ -178,7 +178,7 @@ int main()
 	//	}
 	//}
 	/***************************Marmousi P-wave model *****************/
-	//fp = fopen("vp501_353.dat", "rb");
+	//fp = fopen("vp501_353.dat", "rb");    //There are 501 grids in x direction, and 353 grid in z direction
 	//if (fp != NULL)
 	//{
 	//	for (int i = Nlayer; i < NX - Nlayer; i++)
