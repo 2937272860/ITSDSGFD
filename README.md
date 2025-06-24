@@ -780,3 +780,12 @@ for (int k = 0; k < NT; k++)
 	}
 ```
 &nbsp;&nbsp;&nbsp;&nbsp;Before simulation, this demo extends an additional PML absorption boundary beyond the model boundary, so the output results need to be cropped to retain only the internal normal wavefield. The file type output by this demo is a binary .dat file, and the data type is float. You need to use other programs that can read and write binary .dat files, or use Python, MATLAB, etc. to read and plot the data.
+
+### Result
+&nbsp;&nbsp;&nbsp;&nbsp;After the demo runs to completion, the data that can be plotted includes wavefield snapshots of the stress p at two selected moments, as well as seismic records received at the surface. Now, plot the corresponding images.
+![recordra](https://github.com/user-attachments/assets/4a5b3fe5-3c8f-49f3-9902-7b8ce24f4d6e)
+Figure 1. Seismic record.
+![wavefront1_tsd](https://github.com/user-attachments/assets/47fcd540-39a0-448e-9145-d89527ca11c6)
+Figure 2. Snapshot of stress at 0.4s.
+![wavefront2_tsd](https://github.com/user-attachments/assets/2e467fcc-96e0-4233-8638-95b9a71f6f8e)
+Figure 3. Snapshot of stress at 0.8s.
