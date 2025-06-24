@@ -9,7 +9,7 @@
 ### File import
 My code compilation platform is Visual Studio 2022. First, I need to create an empty project. Then, I should import the `main.cpp` and `time_space_domain.cpp` files into the source files, and import the `time_space_domain.h` into the header files, so as to ensure that all necessary functions have been imported.
 
-'''cpp
+```cpp{: .line-numbers}
 #define _CRT_SECURE_NO_WARNINGS
 #include<stdio.h>
 #include<math.h>
